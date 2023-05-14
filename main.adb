@@ -184,8 +184,13 @@ begin
            else
              Stack.Pop(OperandStack, IntTemp1);     
              Stack.Pop(OperandStack, IntTemp2);  
-                               
-             Stack.Push(OperandStack, Integer'Unchecked_Subtraction(IntTemp1, IntTemp2));
+                        
+             if (IntTemp1 < Integer'First + IntTemp2 or IntTemp1 > Integer'Last + IntTemp2 ) then             
+                Put_Line(Invalid_Message);             
+                return;       
+             end if;           
+                        
+             Stack.Push(OperandStack, IntTemp1 - IntTemp2);
            end if;         
          end;        
                
