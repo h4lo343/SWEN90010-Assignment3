@@ -12,7 +12,6 @@ with Ada.Integer_Text_IO; use Ada.Integer_Text_IO;
 with Ada.Long_Long_Integer_Text_IO;
 
 procedure Main is
- 
    package Stack is new SimpleStack(512, Integer, 0);
    OperandStack : Stack.SimpleStack;
    DB : VariableStore.Database;
@@ -33,6 +32,7 @@ procedure Main is
    No_Enough_Operand : String := "No Enough Operands For the Operation";
    No_Variable : String := "There Is No Such Variable In Database";
    Divide_By_Zero: String := "Can not divide by 0, Calculator Will Exit Now";
+   Overflow_Occur: String := "Overflow occured in the operation, Calculator Will Exit Now";
    
    type Lock_State_Type is (Locked, Unlocked);
    Lock_State : Lock_State_Type;
@@ -93,9 +93,8 @@ begin
       
        declare 
        Command : Lines.MyString := Lines.Substring(S,T(1).Start,T(1).Start+T(1).Length-1);
-       Parameter : Lines.MyString := Lines.From_String("");
-       Patameter_String : String := Lines.To_String(Parameter);  
-               
+       Parameter : Lines.MyString := Lines.From_String(""); 
+      
        begin
          
        if NumTokens = 2 then
@@ -104,25 +103,32 @@ begin
       
        -- Unlock Command Part
        if (Lines.Equal(Command, Command_Unlock)) then 
+         declare 
+           Parameter_String : String := Lines.To_String(Parameter);
+           begin 
          if(NumTokens = 1) then        
            Put_Line(Expect_Two_Tokens);
            return;         
          
-         elsif(Patameter_String' Length /= 4 or (for all I in Patameter_String' Range => 
-          Patameter_String(I) <= '0' or Patameter_String(I) >= '9'  )) then
+         elsif(Parameter_String'Length /= 4 or (for all I in Parameter_String'Range => 
+          Parameter_String(I) < '0' or Parameter_String(I) > '9'  )) then
           Put_Line(Invalid_Message);            
           return;          
                     
          elsif(Lock_State = Unlocked) then
            Put_Line(Already_Unlocked);
-         else                
-           if PIN."="(PIN1, PIN.From_String(Patameter_String)) then   
-             Lock_State := Unlocked; 
+        
+         elsif(Parameter_String'Length = 4 or (for all I in Parameter_String'Range => 
+          Parameter_String(I) >= '0' or Parameter_String(I) <= '9'  )) then                
+           if PIN."="(PIN1, PIN.From_String(Parameter_String)) then   
+           Lock_State := Unlocked; 
            else        
            Put_Line(Incorrect_Pin);
-           end if;                 
+           end if;
          end if;  
-       
+       end;
+
+
        -- Lock Command Part        
        elsif (Lines.Equal(Command, Command_Lock)) then 
          if(NumTokens = 1) then        
@@ -131,12 +137,12 @@ begin
          
          elsif(Lock_State = Locked) then
            Put_Line(Already_Locked);
-         
-         elsif(Patameter_String' Length /= 4 or (for all I in Patameter_String' Range => 
-          Patameter_String(I) <= '0' or Patameter_String(I) >= '9'  )) then
+        
+         elsif(Lines.To_String(Parameter)'Length /= 4 or (for all I in Lines.To_String(Parameter)'Range => 
+          Lines.To_String(Parameter)(I) < '0' or Lines.To_String(Parameter)(I) > '9'  )) then
           Put_Line(Invalid_Message);            
           return; 
-                  
+
          else                
            if PIN."="(PIN1, PIN.From_String(Lines.To_String(Parameter))) then   
              Lock_State := Locked;
@@ -147,6 +153,7 @@ begin
        
        -- Push Command Part        
        elsif (Lines.Equal(Command, Command_Push)) then
+                 
          if(Lock_State = Locked) then
            Put_Line(No_Unlocked);      
            return;        
@@ -158,7 +165,7 @@ begin
          elsif(Stack.Size(OperandStack) = 512) then
            Put_Line(Too_Many_Operand);       
            return;       
-         
+                       
          else 
          Stack.Push(OperandStack, StringToInteger.From_String(Lines.To_String(Parameter)));
          end if;  
@@ -168,6 +175,7 @@ begin
          declare
            IntTemp1 : Integer;     
            IntTemp2 : Integer;
+                      
          begin      
            if(Lock_State = Locked) then
              Put_Line(No_Unlocked);      
@@ -181,16 +189,19 @@ begin
              Put_Line(No_Enough_Operand);
              return; 
          
-           else
+         else
              Stack.Pop(OperandStack, IntTemp1);     
              Stack.Pop(OperandStack, IntTemp2);  
-                        
-             if (IntTemp1 < Integer'First + IntTemp2 or IntTemp1 > Integer'Last + IntTemp2 ) then             
-                Put_Line(Invalid_Message);             
-                return;       
-             end if;           
-                        
-             Stack.Push(OperandStack, IntTemp1 - IntTemp2);
+              
+             if(if IntTemp2 < 0 then IntTemp1 <= Integer'Last + IntTemp2
+                else IntTemp1 >= Integer'First + IntTemp2
+             ) then
+
+             Stack.Push(OperandStack, IntTemp1 - IntTemp2 ); 
+             
+             else
+              Put_Line(Overflow_Occur);
+             end if;       
            end if;         
          end;        
                
@@ -214,8 +225,16 @@ begin
          
            else
              Stack.Pop(OperandStack, IntTemp1);     
-             Stack.Pop(OperandStack, IntTemp2);          
+             Stack.Pop(OperandStack, IntTemp2); 
+
+             if(if IntTemp2 < 0 then IntTemp1 >= Integer'First - IntTemp2
+               else IntTemp1 <= Integer'Last - IntTemp2
+             ) then 
+
              Stack.Push(OperandStack, IntTemp1 + IntTemp2);
+             else 
+               Put_Line(Overflow_Occur);
+             end if;
            end if;         
          end;                     
        
@@ -236,14 +255,32 @@ begin
            elsif(Stack.Size(OperandStack) < 2) then     
              Put_Line(No_Enough_Operand);
              return;
-                  
+     
            else
              Stack.Pop(OperandStack, IntTemp1);     
-             Stack.Pop(OperandStack, IntTemp2);          
-             Stack.Push(OperandStack, IntTemp1 * IntTemp2);          
-                     
-           end if;             
-         end; 
+             Stack.Pop(OperandStack, IntTemp2);
+             if( IntTemp1 <= 5 and IntTemp1 >= (-5) and 
+                  IntTemp2 <= 5 and IntTemp2 >= (-5)) then 
+              if(
+                if IntTemp2 > 0 and IntTemp1 > 0 and IntTemp2 >= 1 and IntTemp1 >= 1 then   
+                  Integer'Last / IntTemp2 >= IntTemp1 and Integer'Last / IntTemp1 >= IntTemp2
+                elsif IntTemp2 < 0 and IntTemp1 < 0 and IntTemp2 <= -1 and IntTemp1 <= -1 then 
+                  Integer'Last / IntTemp2 <= IntTemp1 and Integer'Last / IntTemp1 <= IntTemp2 
+                elsif IntTemp2 < 0 and IntTemp1 > 0 and IntTemp2 <= -1 and IntTemp1 >= 1 then 
+                  (-Integer'Last) / IntTemp1 <= IntTemp2 and (-Integer'Last) / IntTemp2 >= IntTemp1
+                elsif IntTemp1 < 0 and IntTemp2 > 0 and IntTemp1 <= -1 and IntTemp2 >= 1 then 
+                  (-Integer'Last) / IntTemp2 <= IntTemp1 and (-Integer'Last) / IntTemp1 >= IntTemp2  
+              ) then
+              Stack.Push(OperandStack, IntTemp1 * IntTemp2);   
+              else 
+                Put_Line(Overflow_Occur);         
+              end if;  
+             else 
+              Put_Line(Overflow_Occur);        
+            end if;
+            
+            end if;            
+          end; 
                    
                
        -- Divide Command Part        
