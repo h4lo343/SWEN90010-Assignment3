@@ -119,11 +119,14 @@ begin
           return;          
                     
          elsif(Lock_State = Unlocked) then
-           Put_Line(Already_Unlocked);
-        
+           Put_Line(Already_Unlocked);           
+                        
          elsif(Parameter_String'Length = 4 and (for all I in Parameter_String'Range => 
           Parameter_String(I) >= '0' and Parameter_String(I) <= '9'  )) then  
-              
+           pragma Assert(Lock_State = Locked);
+                        pragma Assert(Parameter_String'Length = 4); 
+                        pragma Assert((for all I in Parameter_String'Range => 
+         Parameter_String(I) >= '0' and Parameter_String(I) <= '9'  ));
            if PIN."="(PIN1, PIN.From_String(Parameter_String)) then   
            Lock_State := Unlocked; 
            else        
@@ -144,7 +147,8 @@ begin
          
          elsif(Lock_State = Locked) then
            Put_Line(Already_Locked);
-        
+                      
+                        
          elsif(Parameter_String'Length /= 4 or (for all I in Parameter_String'Range => 
           Parameter_String(I) < '0' or Parameter_String(I) > '9'  )) then
           Put_Line(Invalid_Message);            
@@ -152,8 +156,13 @@ begin
 
          elsif(Parameter_String'Length = 4 and (for all I in Parameter_String'Range => 
          Parameter_String(I) >= '0' and Parameter_String(I) <= '9'  )) then                 
+             pragma Assert(Lock_State = Unlocked);
+                        pragma Assert(Parameter_String'Length = 4); 
+                        pragma Assert((for all I in Parameter_String'Range => 
+         Parameter_String(I) >= '0' and Parameter_String(I) <= '9'  ));
              PIN1 := PIN.From_String(Parameter_String);
-             Lock_State := Locked;      
+             Lock_State := Locked;
+             pragma Assert(PIN."="(PIN1, PIN.From_String(Parameter_String)));
          end if;   
         end;       
        
@@ -164,6 +173,8 @@ begin
            Put_Line(No_Unlocked);      
            return;        
          
+         pragma Assert(Lock_State = Unlocked);            
+                     
          elsif(NumTokens = 1) then
            Put_Line(Expect_Two_Tokens);
            return;   
@@ -186,7 +197,9 @@ begin
            if(Lock_State = Locked) then
              Put_Line(No_Unlocked);      
              return;        
-             
+           
+           pragma Assert(Lock_State = Unlocked);
+                    
            elsif(NumTokens = 2) then
              Put_Line(Expect_One_Token);
              return; 
@@ -219,7 +232,9 @@ begin
          begin      
            if(Lock_State = Locked) then
              Put_Line(No_Unlocked);      
-             return;        
+               return;
+           
+           pragma Assert(Lock_State = Unlocked);
          
            elsif(NumTokens = 2) then
              Put_Line(Expect_One_Token);
@@ -256,6 +271,8 @@ begin
              Put_Line(No_Unlocked);      
              return;        
          
+           pragma Assert(Lock_State = Unlocked);             
+                        
            elsif(NumTokens = 2) then
              Put_Line(Expect_One_Token);
              return; 
@@ -336,7 +353,9 @@ begin
            if(Lock_State = Locked) then
              Put_Line(No_Unlocked);      
              return;        
-         
+
+           pragma Assert(Lock_State = Unlocked);             
+                        
            elsif(NumTokens = 2) then
              Put_Line(Expect_One_Token);
              return; 
@@ -353,7 +372,8 @@ begin
              if (IntTemp1 = Integer'First and IntTemp2 = -1) then
               Put_Line(Overflow_Occur); 
               return;
-              end if;
+                        end if;
+             pragma Assert(IntTemp1 /= Integer'First or IntTemp2 /= -1);
              if (IntTemp1 > 0 and IntTemp2 > 0) then   
               Bound := IntTemp1;
               while IntTemp1 >= IntTemp2 and Result < Bound loop
@@ -403,7 +423,9 @@ begin
        if(Lock_State = Locked) then
            Put_Line(No_Unlocked);      
              return; 
-                  
+       
+       pragma Assert(Lock_State = Unlocked);                 
+                        
        elsif(NumTokens = 2) then
              Put_Line(Expect_One_Token);
              return;
@@ -435,7 +457,9 @@ begin
            if(Lock_State = Locked) then
            Put_Line(No_Unlocked);      
            return; 
-            
+           
+           pragma Assert(Lock_State = Unlocked);             
+                        
            elsif(NumTokens = 1) then
              Put_Line(Expect_Two_Tokens);
              return;     
@@ -476,7 +500,9 @@ begin
            if(Lock_State = Locked) then
              Put_Line(No_Unlocked);      
              return; 
-            
+           
+           pragma Assert(Lock_State = Unlocked);             
+                        
            elsif(NumTokens = 1) then
              Put_Line(Expect_Two_Tokens);
              return;              
@@ -509,7 +535,9 @@ begin
            if(Lock_State = Locked) then
              Put_Line(No_Unlocked);      
              return; 
-            
+           
+           pragma Assert(Lock_State = Unlocked);             
+                        
            elsif(NumTokens = 1) then
              Put_Line(Expect_Two_Tokens);
              return;              
