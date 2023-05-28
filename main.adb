@@ -309,7 +309,7 @@ begin
                   Put_Line(Overflow_Occur); 
                   return;
                 else   
-                  result := result + IntTemp1;
+                  result := result - IntTemp1;
                   count := count + 1;
                 end if;               
                 end loop; 
