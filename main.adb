@@ -305,7 +305,7 @@ begin
                   return;
                 else   
                 while count < (-IntTemp2) loop
-                if(result < Integer'First - IntTemp1) then
+                if(result > Integer'Last + IntTemp1) then
                   Put_Line(Overflow_Occur); 
                   return;
                 else   
@@ -322,11 +322,13 @@ begin
           end; 
                    
                
-       -- Divide Command Part        
+      -- Divide Command Part        
        elsif(Lines.Equal(Command, Command_Divide)) then        
          declare         
            IntTemp1 : Integer;     
-           IntTemp2 : Integer;      
+           IntTemp2 : Integer;
+                     Result : Integer := 0;
+                     Bound : Integer;
          begin       
            if(Lock_State = Locked) then
              Put_Line(No_Unlocked);      
@@ -344,12 +346,43 @@ begin
              Stack.Pop(OperandStack, IntTemp1);     
              Stack.Pop(OperandStack, IntTemp2);          
              
-             if(IntTemp2 = 0) then Put_Line(Divide_By_Zero); return; end if;        
-                     
-             Stack.Push(OperandStack, IntTemp1 / IntTemp2);          
-                     
-           end if;             
-         end;         
+             if(IntTemp2 = 0) then Put_Line(Divide_By_Zero); return; end if;
+             if (IntTemp1 = 0) then Stack.Push(OperandStack, 0); end if;
+             if (IntTemp1 = Integer'First and IntTemp2 < 0) then return; end if;
+             if (IntTemp1 > 0 and IntTemp2 > 0) then   
+                        Bound := IntTemp1;
+                        while IntTemp1 >= IntTemp2 and Result < Bound loop
+                           IntTemp1 := IntTemp1 - IntTemp2;
+                           Result := Result + 1;
+                        end loop;        
+             end if;
+  
+            if (IntTemp1 > 0 and IntTemp2 < 0) then   
+            Bound := IntTemp1;
+            while -IntTemp1 <= IntTemp2 and Result > -Bound loop
+                IntTemp1 := IntTemp1 + IntTemp2;
+                Result := Result - 1;
+            end loop;        
+            end if;
+            
+            if (IntTemp1 < 0 and IntTemp2 > 0) then   
+            Bound := IntTemp1;
+            while IntTemp1 <= -IntTemp2 and Result > Bound loop
+                IntTemp1 := IntTemp1 + IntTemp2;
+                Result := Result - 1;
+            end loop;        
+            end if;
+            
+            if (IntTemp1 < 0 and IntTemp2 < 0) then   
+            Bound := IntTemp1;
+                while IntTemp1 <= IntTemp2 and -Result > Bound loop
+                IntTemp1 := IntTemp1 - IntTemp2;
+                Result := Result + 1;
+            end loop;        
+            end if;          
+            Stack.Push(OperandStack, Result);             
+           end if;            
+         end; 
                
        -- Pop Command Part   
        elsif (Lines.Equal(Command, Command_Pop)) then
