@@ -1,3 +1,4 @@
+
 package MyCommandLine with SPARK_Mode is
 
    function Argument_Count return Natural;
