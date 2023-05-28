@@ -119,9 +119,8 @@ begin
            Put_Line(Already_Unlocked);
         
          elsif(Parameter_String'Length = 4 and (for all I in Parameter_String'Range => 
-          Parameter_String(I) >= '0' or Parameter_String(I) <= '9'  )) then  
-           pragma Assert(Parameter_String'Length = 4 and (for all I in Parameter_String'Range => 
-          Parameter_String(I) >= '0' or Parameter_String(I) <= '9'  ));              
+          Parameter_String(I) >= '0' and Parameter_String(I) <= '9'  )) then  
+              
            if PIN."="(PIN1, PIN.From_String(Parameter_String)) then   
            Lock_State := Unlocked; 
            else        
@@ -133,6 +132,9 @@ begin
 
        -- Lock Command Part        
        elsif (Lines.Equal(Command, Command_Lock)) then 
+        declare 
+           Parameter_String : String := Lines.To_String(Parameter);
+           begin 
          if(NumTokens = 1) then        
            Put_Line(Expect_Two_Tokens);
            return;         
@@ -140,15 +142,17 @@ begin
          elsif(Lock_State = Locked) then
            Put_Line(Already_Locked);
         
-         elsif(Lines.To_String(Parameter)'Length /= 4 or (for all I in Lines.To_String(Parameter)'Range => 
-          Lines.To_String(Parameter)(I) < '0' or Lines.To_String(Parameter)(I) > '9'  )) then
+         elsif(Parameter_String'Length /= 4 or (for all I in Parameter_String'Range => 
+          Parameter_String(I) < '0' or Parameter_String(I) > '9'  )) then
           Put_Line(Invalid_Message);            
           return; 
 
-         else                
-             PIN1 := PIN.From_String(Lines.To_String(Parameter));
-             Lock_State := Locked;    
-         end if;         
+         elsif(Parameter_String'Length = 4 and (for all I in Parameter_String'Range => 
+         Parameter_String(I) >= '0' and Parameter_String(I) <= '9'  )) then                 
+             PIN1 := PIN.From_String(Parameter_String);
+             Lock_State := Locked;      
+         end if;   
+        end;       
        
        -- Push Command Part        
        elsif (Lines.Equal(Command, Command_Push)) then
