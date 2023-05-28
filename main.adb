@@ -8,6 +8,8 @@ with MyStringTokeniser;
 with PIN;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Integer_Text_IO; use Ada.Integer_Text_IO;
+with Ada.Containers;
+use Ada.Containers;
 
 with Ada.Long_Long_Integer_Text_IO;
 
@@ -33,6 +35,7 @@ procedure Main is
    No_Variable : String := "There Is No Such Variable In Database";
    Divide_By_Zero: String := "Can not divide by 0, Calculator Will Exit Now";
    Overflow_Occur: String := "Overflow occured in the operation, Calculator Will Exit Now";
+   DB_FULL: String := "DB is Full";
    
    type Lock_State_Type is (Locked, Unlocked);
    Lock_State : Lock_State_Type;
@@ -419,11 +422,16 @@ begin
        elsif (Lines.Equal(Command, Command_Store)) then     
          declare     
            variableName: String := Lines.To_String(Parameter);     
-           variable: VariableStore.Variable := VariableStore.From_String(variableName);
+           variable: VariableStore.Variable;
            IntTemp: Integer;     
          
          begin         
-                  
+           if(variableName'Length > 1024) then
+             Put_Line(Invalid_Message);           
+             return; 
+           else 
+             variable := VariableStore.From_String(variableName);    
+           end if;       
            if(Lock_State = Locked) then
            Put_Line(No_Unlocked);      
            return; 
@@ -434,18 +442,19 @@ begin
             
            elsif(Stack.Size(OperandStack) < 1) then
              Put_Line(No_Enough_Operand);
-             
-       
-           elsif(Lines.Length(Parameter) > 1024) then      
-             Put_Line(Invalid_Message);           
-             return;    
+               
            else 
              if(VariableStore.Has_Variable(DB, variable)) then 
                VariableStore.Remove(DB, variable);
                                  
-             end if;            
+             end if;    
+             if(VariableStore.Length(DB) >= 1000 ) then
+               Put_Line(DB_FULL);
+               return;
+             else          
              Stack.Pop(OperandStack, IntTemp);  
-             VariableStore.Put(DB,variable,IntTemp);       
+             VariableStore.Put(DB,variable,IntTemp);  
+             end if;      
            end if;    
          end;   
       
@@ -455,9 +464,15 @@ begin
        elsif (Lines.Equal(Command, Command_Remove)) then        
          declare 
            variableName: String := Lines.To_String(Parameter);     
-           variable: VariableStore.Variable := VariableStore.From_String(variableName);       
+           variable: VariableStore.Variable;       
          
          begin 
+           if(variableName'Length > 1024) then
+             Put_Line(Invalid_Message);
+             return;
+           else 
+             variable := VariableStore.From_String(variableName); 
+           end if;  
            if(Lock_State = Locked) then
              Put_Line(No_Unlocked);      
              return; 
@@ -481,10 +496,16 @@ begin
        elsif (Lines.Equal(Command, Command_Load)) then 
          declare  
            variableName: String := Lines.To_String(Parameter);     
-           variable: VariableStore.Variable := VariableStore.From_String(variableName);
+           variable: VariableStore.Variable;     
            IntTemp: Integer;                                   
                   
-         begin           
+         begin    
+           if(variableName'Length > 1024) then
+             Put_Line(Invalid_Message);
+             return;
+           else 
+             variable := VariableStore.From_String(variableName); 
+           end if;         
            if(Lock_State = Locked) then
              Put_Line(No_Unlocked);      
              return; 
@@ -497,7 +518,7 @@ begin
              Put_Line(No_Variable);
              return;        
            
-           elsif(Stack.Size(OperandStack) + 1 = 512) then
+           elsif(Stack.Size(OperandStack) = 512) then
              Put_Line(Too_Many_Operand);       
              return;          
             
