@@ -245,7 +245,9 @@ begin
        elsif (Lines.Equal(Command, Command_Multiple)) then         
          declare         
            IntTemp1 : Integer;     
-           IntTemp2 : Integer;      
+           IntTemp2 : Integer; 
+           result : Integer := 0;  
+           count : Integer := 0;   
          begin       
            if(Lock_State = Locked) then
              Put_Line(No_Unlocked);      
@@ -262,10 +264,61 @@ begin
            else
              Stack.Pop(OperandStack, IntTemp1);     
              Stack.Pop(OperandStack, IntTemp2);
-          
-             Stack.Push(OperandStack, IntTemp1 * IntTemp2);   
-           
-            end if;            
+
+             if(IntTemp2 > 0 and IntTemp1 > 0) then 
+              while count < IntTemp1 loop
+              if(result > Integer'Last - IntTemp2) then
+                Put_Line(Overflow_Occur); 
+                return;
+              else   
+                result := result + IntTemp2;
+                count := count + 1;
+              end if;               
+              end loop;   
+             
+
+             elsif(IntTemp1 > 0 and IntTemp2 < 0) then 
+              while count < IntTemp1 loop
+              if(result < Integer'First - IntTemp2) then
+                Put_Line(Overflow_Occur); 
+                return;
+              else   
+                result := result + IntTemp2;
+                count := count + 1;
+              end if;               
+              end loop;  
+
+             elsif(IntTemp1 < 0 and IntTemp2 > 0) then 
+              while count < IntTemp2 loop
+              if(result < Integer'First - IntTemp1) then
+                Put_Line(Overflow_Occur); 
+                return;
+              else   
+                result := result + IntTemp1;
+                count := count + 1;
+              end if;               
+              end loop;
+
+             elsif(IntTemp1 < 0 and IntTemp2 < 0) then 
+                if(IntTemp1 = Integer'First or IntTemp2 = Integer'First) then
+                  Put_Line(Overflow_Occur); 
+                  return;
+                else   
+                while count < (-IntTemp2) loop
+                if(result < Integer'First - IntTemp1) then
+                  Put_Line(Overflow_Occur); 
+                  return;
+                else   
+                  result := result + IntTemp1;
+                  count := count + 1;
+                end if;               
+                end loop; 
+                end if;
+              
+             end if;    
+             Stack.Push(OperandStack, result);   
+                   
+           end if;            
           end; 
                    
                
