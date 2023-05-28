@@ -411,7 +411,7 @@ begin
        else 
                   
        Stack.Pop(OperandStack, temp);   
-                        
+       Put_Line("pop integer: " & temp'Image);                 
        end if;        
        end;        
                
