@@ -118,8 +118,10 @@ begin
          elsif(Lock_State = Unlocked) then
            Put_Line(Already_Unlocked);
         
-         elsif(Parameter_String'Length = 4 or (for all I in Parameter_String'Range => 
-          Parameter_String(I) >= '0' or Parameter_String(I) <= '9'  )) then                
+         elsif(Parameter_String'Length = 4 and (for all I in Parameter_String'Range => 
+          Parameter_String(I) >= '0' or Parameter_String(I) <= '9'  )) then  
+           pragma Assert(Parameter_String'Length = 4 and (for all I in Parameter_String'Range => 
+          Parameter_String(I) >= '0' or Parameter_String(I) <= '9'  ));              
            if PIN."="(PIN1, PIN.From_String(Parameter_String)) then   
            Lock_State := Unlocked; 
            else        
@@ -144,11 +146,8 @@ begin
           return; 
 
          else                
-           if PIN."="(PIN1, PIN.From_String(Lines.To_String(Parameter))) then   
-             Lock_State := Locked;
-           else        
-           Put_Line(Incorrect_Pin);       
-           end if;                 
+             PIN1 := PIN.From_String(Lines.To_String(Parameter));
+             Lock_State := Locked;    
          end if;         
        
        -- Push Command Part        
@@ -187,20 +186,20 @@ begin
        
            elsif(Stack.Size(OperandStack) < 2) then     
              Put_Line(No_Enough_Operand);
-             return; 
+      
          
          else
              Stack.Pop(OperandStack, IntTemp1);     
              Stack.Pop(OperandStack, IntTemp2);  
-              
-             if(if IntTemp2 < 0 then IntTemp1 <= Integer'Last + IntTemp2
-                else IntTemp1 >= Integer'First + IntTemp2
+            
+              if(if IntTemp2 < 0 then IntTemp1 <= Integer'Last + IntTemp2
+                  else IntTemp1 >= Integer'First + IntTemp2
              ) then
 
              Stack.Push(OperandStack, IntTemp1 - IntTemp2 ); 
              
              else
-              Put_Line(Overflow_Occur);
+             Put_Line(Overflow_Occur);
              end if;       
            end if;         
          end;        
@@ -221,7 +220,7 @@ begin
        
            elsif(Stack.Size(OperandStack) < 2) then     
              Put_Line(No_Enough_Operand);
-             return; 
+      
          
            else
              Stack.Pop(OperandStack, IntTemp1);     
@@ -254,31 +253,14 @@ begin
        
            elsif(Stack.Size(OperandStack) < 2) then     
              Put_Line(No_Enough_Operand);
-             return;
+      
      
            else
              Stack.Pop(OperandStack, IntTemp1);     
              Stack.Pop(OperandStack, IntTemp2);
-             if( IntTemp1 <= 5 and IntTemp1 >= (-5) and 
-                  IntTemp2 <= 5 and IntTemp2 >= (-5)) then 
-              if(
-                if IntTemp2 > 0 and IntTemp1 > 0 and IntTemp2 >= 1 and IntTemp1 >= 1 then   
-                  Integer'Last / IntTemp2 >= IntTemp1 and Integer'Last / IntTemp1 >= IntTemp2
-                elsif IntTemp2 < 0 and IntTemp1 < 0 and IntTemp2 <= -1 and IntTemp1 <= -1 then 
-                  Integer'Last / IntTemp2 <= IntTemp1 and Integer'Last / IntTemp1 <= IntTemp2 
-                elsif IntTemp2 < 0 and IntTemp1 > 0 and IntTemp2 <= -1 and IntTemp1 >= 1 then 
-                  (-Integer'Last) / IntTemp1 <= IntTemp2 and (-Integer'Last) / IntTemp2 >= IntTemp1
-                elsif IntTemp1 < 0 and IntTemp2 > 0 and IntTemp1 <= -1 and IntTemp2 >= 1 then 
-                  (-Integer'Last) / IntTemp2 <= IntTemp1 and (-Integer'Last) / IntTemp1 >= IntTemp2  
-              ) then
-              Stack.Push(OperandStack, IntTemp1 * IntTemp2);   
-              else 
-                Put_Line(Overflow_Occur);         
-              end if;  
-             else 
-              Put_Line(Overflow_Occur);        
-            end if;
-            
+          
+             Stack.Push(OperandStack, IntTemp1 * IntTemp2);   
+           
             end if;            
           end; 
                    
@@ -299,7 +281,7 @@ begin
        
            elsif(Stack.Size(OperandStack) < 2) then     
              Put_Line(No_Enough_Operand);
-             return;      
+           
                      
            else
              Stack.Pop(OperandStack, IntTemp1);     
@@ -327,7 +309,6 @@ begin
        
        elsif(Stack.Size(OperandStack) < 1) then     
              Put_Line(No_Enough_Operand);
-             return;           
        
        else 
                   
@@ -355,7 +336,7 @@ begin
             
            elsif(Stack.Size(OperandStack) < 1) then
              Put_Line(No_Enough_Operand);
-             return;        
+             
        
            elsif(Lines.Length(Parameter) > 1024) then      
              Put_Line(Invalid_Message);           

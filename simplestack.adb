@@ -1,4 +1,4 @@
--- This file is imported and  adapted from simplestack.adb from SWEN90010 2023 Lecture
+-- This file is imported and adapted from simplestack.adb from SWEN90010 2023 Lecture
 -- With the usage permission from lecturer.
 
 
