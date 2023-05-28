@@ -327,8 +327,8 @@ begin
          declare         
            IntTemp1 : Integer;     
            IntTemp2 : Integer;
-                     Result : Integer := 0;
-                     Bound : Integer;
+           Result : Integer := 0;
+           Bound : Integer;
          begin       
            if(Lock_State = Locked) then
              Put_Line(No_Unlocked);      
@@ -340,8 +340,7 @@ begin
        
            elsif(Stack.Size(OperandStack) < 2) then     
              Put_Line(No_Enough_Operand);
-           
-                     
+                  
            else
              Stack.Pop(OperandStack, IntTemp1);     
              Stack.Pop(OperandStack, IntTemp2);          
@@ -353,35 +352,40 @@ begin
               return;
               end if;
              if (IntTemp1 > 0 and IntTemp2 > 0) then   
-                        Bound := IntTemp1;
-                        while IntTemp1 >= IntTemp2 and Result < Bound loop
-                           IntTemp1 := IntTemp1 - IntTemp2;
-                           Result := Result + 1;
-                        end loop;        
+              Bound := IntTemp1;
+              while IntTemp1 >= IntTemp2 and Result < Bound loop
+                  IntTemp1 := IntTemp1 - IntTemp2;
+                  Result := Result + 1;
+              end loop;        
              end if;
   
             if (IntTemp1 > 0 and IntTemp2 < 0) then   
             Bound := IntTemp1;
             while -IntTemp1 <= IntTemp2 and Result > -Bound loop
-                IntTemp1 := IntTemp1 + IntTemp2;
-                Result := Result - 1;
+              IntTemp1 := IntTemp1 + IntTemp2;
+              Result := Result - 1;
             end loop;        
             end if;
             
             if (IntTemp1 < 0 and IntTemp2 > 0) then   
             Bound := IntTemp1;
             while IntTemp1 <= -IntTemp2 and Result > Bound loop
-                IntTemp1 := IntTemp1 + IntTemp2;
-                Result := Result - 1;
+              IntTemp1 := IntTemp1 + IntTemp2;
+              Result := Result - 1;
             end loop;        
             end if;
             
             if (IntTemp1 < 0 and IntTemp2 < 0) then   
-            Bound := IntTemp1;
-                while IntTemp1 <= IntTemp2 and -Result > Bound loop
+              Bound := IntTemp1;
+                while IntTemp1 <= IntTemp2 and Result > Bound loop
                 IntTemp1 := IntTemp1 - IntTemp2;
-                Result := Result + 1;
-            end loop;        
+                Result := Result - 1;
+                end loop;  
+                if(Result = Integer'First) then
+                  Put_Line(Overflow_Occur); 
+                  return;   
+                end if;  
+                Result := -Result;   
             end if;          
             Stack.Push(OperandStack, Result);          
                      
