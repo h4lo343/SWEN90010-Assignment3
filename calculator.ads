@@ -38,8 +38,9 @@ package Calculator with SPARK_Mode  is
 
     procedure Store(C: in out Calculator; V: VariableStore.Variable) with
     Pre => (VariableStore.Length(C.DB) < VariableStore.Max_Entries 
-    	and StackSize(c) > 0 
-    	and C.Lock_State = False);
+    	and StackSize(C) > 0 
+    	and C.Lock_State = False),
+    Post => (StackSize(C) = StackSize(C'Old) - 1);
 
     procedure Remove(C: in out Calculator; V: VariableStore.Variable) with
     Pre => (VariableStore.Has_Variable(C.DB, V) and C.Lock_State = False);
