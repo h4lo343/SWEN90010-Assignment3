@@ -6,6 +6,7 @@ with MyCommandLine;
 with MyString;
 with MyStringTokeniser;
 with PIN;
+with Calculator;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Integer_Text_IO; use Ada.Integer_Text_IO;
 with Ada.Containers;
@@ -14,10 +15,7 @@ use Ada.Containers;
 with Ada.Long_Long_Integer_Text_IO;
 
 procedure Main is
-   package Stack is new SimpleStack(512, Integer, 0);
-   OperandStack : Stack.SimpleStack;
-   DB : VariableStore.Database;
-   PIN1  : PIN.PIN;
+   C: Calculator.Calculator;
    package Lines is new MyString(Max_MyString_Length => 2048);
    S  : Lines.MyString;
    
@@ -37,8 +35,7 @@ procedure Main is
    Overflow_Occur: String := "Overflow occured in the operation, Calculator Will Exit Now";
    DB_FULL: String := "DB is Full";
    
-   type Lock_State_Type is (Locked, Unlocked);
-   Lock_State : Lock_State_Type;
+
    
    Command_Add : Lines.MyString := Lines.From_String("+");
    Command_Minus : Lines.MyString := Lines.From_String("-");
@@ -59,21 +56,20 @@ begin
    (for all I in MyCommandLine.Argument(1)'Range => 
       MyCommandLine.Argument(1)(I) >= '0' and
       MyCommandLine.Argument(1)(I) <= '9') then 
-      PIN1 := PIN.From_String(MyCommandLine.Argument(1));
-      Lock_State := Locked;
+         Calculator.Init(C, PIN.From_String(MyCommandLine.Argument(1)));
    else
       Put_Line(Invalid_Message);
       return;
       
    end if;
    
-   Stack.Init(OperandStack);
-   VariableStore.Init(DB);
+--     Stack.Init(OperandStack);
+--     VariableStore.Init(DB);
    
    loop
-      if (Lock_State = Locked) then Put("locked>");
-      else put("unlocked>");
-      end if;  
+        if (C.Lock_State) then Put("locked>");
+        else put("unlocked>");
+        end if;  
       
       Lines.Get_Line(S);
       if Lines.length(S) > 2048 then
@@ -106,9 +102,9 @@ begin
       
        -- Unlock Command Part
        if (Lines.Equal(Command, Command_Unlock)) then 
-         declare 
+        declare 
            Parameter_String : String := Lines.To_String(Parameter);
-           begin 
+        begin 
          if(NumTokens = 1) then        
            Put_Line(Expect_Two_Tokens);
            return;         
@@ -118,20 +114,13 @@ begin
           Put_Line(Invalid_Message);            
           return;          
                     
-         elsif(Lock_State = Unlocked) then
+         elsif(C.Lock_State = False) then
            Put_Line(Already_Unlocked);           
                         
          elsif(Parameter_String'Length = 4 and (for all I in Parameter_String'Range => 
-          Parameter_String(I) >= '0' and Parameter_String(I) <= '9'  )) then  
-           pragma Assert(Lock_State = Locked);
-                        pragma Assert(Parameter_String'Length = 4); 
-                        pragma Assert((for all I in Parameter_String'Range => 
-         Parameter_String(I) >= '0' and Parameter_String(I) <= '9'  ));
-           if PIN."="(PIN1, PIN.From_String(Parameter_String)) then   
-           Lock_State := Unlocked; 
-           else        
-           Put_Line(Incorrect_Pin);
-           end if;
+          Parameter_String(I) >= '0' and Parameter_String(I) <= '9'  )) then 
+                  
+           Calculator.Unlock(C, PIN.From_String(Parameter_String));
          end if;  
        end;
 
@@ -140,12 +129,12 @@ begin
        elsif (Lines.Equal(Command, Command_Lock)) then 
         declare 
            Parameter_String : String := Lines.To_String(Parameter);
-           begin 
+        begin 
          if(NumTokens = 1) then        
            Put_Line(Expect_Two_Tokens);
            return;         
          
-         elsif(Lock_State = Locked) then
+         elsif(C.Lock_State) then
            Put_Line(Already_Locked);
                       
                         
@@ -156,424 +145,9 @@ begin
 
          elsif(Parameter_String'Length = 4 and (for all I in Parameter_String'Range => 
          Parameter_String(I) >= '0' and Parameter_String(I) <= '9'  )) then                 
-             pragma Assert(Lock_State = Unlocked);
-                        pragma Assert(Parameter_String'Length = 4); 
-                        pragma Assert((for all I in Parameter_String'Range => 
-         Parameter_String(I) >= '0' and Parameter_String(I) <= '9'  ));
-             PIN1 := PIN.From_String(Parameter_String);
-             Lock_State := Locked;
-             pragma Assert(PIN."="(PIN1, PIN.From_String(Parameter_String)));
+             Calculator.Lock(C, PIN.From_String(Parameter_String));
          end if;   
-        end;       
-       
-       -- Push Command Part        
-       elsif (Lines.Equal(Command, Command_Push)) then
-                 
-         if(Lock_State = Locked) then
-           Put_Line(No_Unlocked);      
-           return;        
-         
-         pragma Assert(Lock_State = Unlocked);            
-                     
-         elsif(NumTokens = 1) then
-           Put_Line(Expect_Two_Tokens);
-           return;   
-         
-         elsif(Stack.Size(OperandStack) = 512) then
-           Put_Line(Too_Many_Operand);       
-           return;       
-                       
-         else 
-         Stack.Push(OperandStack, StringToInteger.From_String(Lines.To_String(Parameter)));
-         end if;  
-       
-       -- Minus Command Part        
-       elsif (Lines.Equal(Command, Command_Minus)) then
-         declare
-           IntTemp1 : Integer;     
-           IntTemp2 : Integer;
-                      
-         begin      
-           if(Lock_State = Locked) then
-             Put_Line(No_Unlocked);      
-             return;        
-           
-           pragma Assert(Lock_State = Unlocked);
-                    
-           elsif(NumTokens = 2) then
-             Put_Line(Expect_One_Token);
-             return; 
-       
-           elsif(Stack.Size(OperandStack) < 2) then     
-             Put_Line(No_Enough_Operand);
-      
-         
-         else
-             Stack.Pop(OperandStack, IntTemp1);     
-             Stack.Pop(OperandStack, IntTemp2);  
-            
-              if(if IntTemp2 < 0 then IntTemp1 <= Integer'Last + IntTemp2
-                  else IntTemp1 >= Integer'First + IntTemp2
-             ) then
-
-             Stack.Push(OperandStack, IntTemp1 - IntTemp2 ); 
-             
-             else
-             Put_Line(Overflow_Occur);
-             end if;       
-           end if;         
-         end;        
-               
-       -- Add Command Part
-       elsif (Lines.Equal(Command, Command_Add)) then
-         declare
-           IntTemp1 : Integer;     
-           IntTemp2 : Integer;
-         begin      
-           if(Lock_State = Locked) then
-             Put_Line(No_Unlocked);      
-               return;
-           
-           pragma Assert(Lock_State = Unlocked);
-         
-           elsif(NumTokens = 2) then
-             Put_Line(Expect_One_Token);
-             return; 
-       
-           elsif(Stack.Size(OperandStack) < 2) then     
-             Put_Line(No_Enough_Operand);
-      
-         
-           else
-             Stack.Pop(OperandStack, IntTemp1);     
-             Stack.Pop(OperandStack, IntTemp2); 
-
-             if(if IntTemp2 < 0 then IntTemp1 >= Integer'First - IntTemp2
-               else IntTemp1 <= Integer'Last - IntTemp2
-             ) then 
-
-             Stack.Push(OperandStack, IntTemp1 + IntTemp2);
-             else 
-               Put_Line(Overflow_Occur);
-             end if;
-           end if;         
-         end;                     
-       
-       -- Multiple Command Part        
-       elsif (Lines.Equal(Command, Command_Multiple)) then         
-         declare         
-           IntTemp1 : Integer;     
-           IntTemp2 : Integer; 
-           result : Integer := 0;  
-           count : Integer := 0;   
-         begin       
-           if(Lock_State = Locked) then
-             Put_Line(No_Unlocked);      
-             return;        
-         
-           pragma Assert(Lock_State = Unlocked);             
-                        
-           elsif(NumTokens = 2) then
-             Put_Line(Expect_One_Token);
-             return; 
-       
-           elsif(Stack.Size(OperandStack) < 2) then     
-             Put_Line(No_Enough_Operand);
-      
-     
-           else
-             Stack.Pop(OperandStack, IntTemp1);     
-             Stack.Pop(OperandStack, IntTemp2);
-
-             if(IntTemp2 > 0 and IntTemp1 > 0) then 
-              while count < IntTemp1 loop
-              if(result > Integer'Last - IntTemp2) then
-                Put_Line(Overflow_Occur); 
-                return;
-              else   
-                result := result + IntTemp2;
-                count := count + 1;
-              end if;               
-              end loop;   
-             
-
-             elsif(IntTemp1 > 0 and IntTemp2 < 0) then 
-              while count < IntTemp1 loop
-              if(result < Integer'First - IntTemp2) then
-                Put_Line(Overflow_Occur); 
-                return;
-              else   
-                result := result + IntTemp2;
-                count := count + 1;
-              end if;               
-              end loop;  
-
-             elsif(IntTemp1 < 0 and IntTemp2 > 0) then 
-              while count < IntTemp2 loop
-              if(result < Integer'First - IntTemp1) then
-                Put_Line(Overflow_Occur); 
-                return;
-              else   
-                result := result + IntTemp1;
-                count := count + 1;
-              end if;               
-              end loop;
-
-             elsif(IntTemp1 < 0 and IntTemp2 < 0) then 
-                if(IntTemp1 = Integer'First or IntTemp2 = Integer'First) then
-                  Put_Line(Overflow_Occur); 
-                  return;
-                else   
-                while count < (-IntTemp2) loop
-                if(result > Integer'Last + IntTemp1) then
-                  Put_Line(Overflow_Occur); 
-                  return;
-                else   
-                  result := result - IntTemp1;
-                  count := count + 1;
-                end if;               
-                end loop; 
-                end if;
-              
-             end if;    
-             Stack.Push(OperandStack, result);   
-                   
-           end if;            
-          end; 
-                   
-               
-      -- Divide Command Part        
-       elsif(Lines.Equal(Command, Command_Divide)) then        
-         declare         
-           IntTemp1 : Integer;     
-           IntTemp2 : Integer;
-           Result : Integer := 0;
-           Bound : Integer;
-         begin       
-           if(Lock_State = Locked) then
-             Put_Line(No_Unlocked);      
-             return;        
-
-           pragma Assert(Lock_State = Unlocked);             
-                        
-           elsif(NumTokens = 2) then
-             Put_Line(Expect_One_Token);
-             return; 
-       
-           elsif(Stack.Size(OperandStack) < 2) then     
-             Put_Line(No_Enough_Operand);
-                  
-           else
-             Stack.Pop(OperandStack, IntTemp1);     
-             Stack.Pop(OperandStack, IntTemp2);          
-             
-             if(IntTemp2 = 0) then Put_Line(Divide_By_Zero); return; end if;
-             if (IntTemp1 = 0) then Stack.Push(OperandStack, 0); end if;
-             if (IntTemp1 = Integer'First and IntTemp2 = -1) then
-              Put_Line(Overflow_Occur); 
-              return;
-                        end if;
-             pragma Assert(IntTemp1 /= Integer'First or IntTemp2 /= -1);
-             if (IntTemp1 > 0 and IntTemp2 > 0) then   
-              Bound := IntTemp1;
-              while IntTemp1 >= IntTemp2 and Result < Bound loop
-                  IntTemp1 := IntTemp1 - IntTemp2;
-                  Result := Result + 1;
-              end loop;        
-             end if;
-  
-            if (IntTemp1 > 0 and IntTemp2 < 0) then   
-            Bound := IntTemp1;
-            while -IntTemp1 <= IntTemp2 and Result > -Bound loop
-              IntTemp1 := IntTemp1 + IntTemp2;
-              Result := Result - 1;
-            end loop;        
-            end if;
-            
-            if (IntTemp1 < 0 and IntTemp2 > 0) then   
-            Bound := IntTemp1;
-            while IntTemp1 <= -IntTemp2 and Result > Bound loop
-              IntTemp1 := IntTemp1 + IntTemp2;
-              Result := Result - 1;
-            end loop;        
-            end if;
-            
-            if (IntTemp1 < 0 and IntTemp2 < 0) then   
-              Bound := IntTemp1;
-                while IntTemp1 <= IntTemp2 and Result > Bound loop
-                IntTemp1 := IntTemp1 - IntTemp2;
-                Result := Result - 1;
-                end loop;  
-                if(Result = Integer'First) then
-                  Put_Line(Overflow_Occur); 
-                  return;   
-                end if;  
-                Result := -Result;   
-            end if;          
-            Stack.Push(OperandStack, Result);          
-                     
-           end if;             
-         end; 
-               
-       -- Pop Command Part   
-       elsif (Lines.Equal(Command, Command_Pop)) then
-       declare 
-         temp : Integer;        
-       begin         
-       if(Lock_State = Locked) then
-           Put_Line(No_Unlocked);      
-             return; 
-       
-       pragma Assert(Lock_State = Unlocked);                 
-                        
-       elsif(NumTokens = 2) then
-             Put_Line(Expect_One_Token);
-             return;
-       
-       elsif(Stack.Size(OperandStack) < 1) then     
-             Put_Line(No_Enough_Operand);
-       
-       else 
-                  
-       Stack.Pop(OperandStack, temp);   
-       Put_Line("pop integer: " & temp'Image);                 
-       end if;        
-       end;        
-               
-       -- Store Command Part    
-       elsif (Lines.Equal(Command, Command_Store)) then     
-         declare     
-           variableName: String := Lines.To_String(Parameter);     
-           variable: VariableStore.Variable;
-           IntTemp: Integer;     
-         
-         begin         
-           if(variableName'Length > 1024) then
-             Put_Line(Invalid_Message);           
-             return; 
-           else 
-             variable := VariableStore.From_String(variableName);    
-           end if;       
-           if(Lock_State = Locked) then
-           Put_Line(No_Unlocked);      
-           return; 
-           
-           pragma Assert(Lock_State = Unlocked);             
-                        
-           elsif(NumTokens = 1) then
-             Put_Line(Expect_Two_Tokens);
-             return;     
-            
-           elsif(Stack.Size(OperandStack) < 1) then
-             Put_Line(No_Enough_Operand);
-               
-           else 
-             if(VariableStore.Has_Variable(DB, variable)) then 
-               VariableStore.Remove(DB, variable);
-                                 
-             end if;    
-             if(VariableStore.Length(DB) >= 1000 ) then
-               Put_Line(DB_FULL);
-               return;
-             else          
-             Stack.Pop(OperandStack, IntTemp);  
-             VariableStore.Put(DB,variable,IntTemp);  
-             end if;      
-           end if;    
-         end;   
-      
-       
-               
-       -- Remove Command Part        
-       elsif (Lines.Equal(Command, Command_Remove)) then        
-         declare 
-           variableName: String := Lines.To_String(Parameter);     
-           variable: VariableStore.Variable;       
-         
-         begin 
-           if(variableName'Length > 1024) then
-             Put_Line(Invalid_Message);
-             return;
-           else 
-             variable := VariableStore.From_String(variableName); 
-           end if;  
-           if(Lock_State = Locked) then
-             Put_Line(No_Unlocked);      
-             return; 
-           
-           pragma Assert(Lock_State = Unlocked);             
-                        
-           elsif(NumTokens = 1) then
-             Put_Line(Expect_Two_Tokens);
-             return;              
-          
-           elsif(VariableStore.Has_Variable(DB, variable) = false) then        
-             Put_Line(No_Variable);
-             return;       
-             
-           else 
-             VariableStore.Remove(DB, variable);        
-                   
-           end if;    
-               
-         end;       
-               
-       -- Load Command Part     
-       elsif (Lines.Equal(Command, Command_Load)) then 
-         declare  
-           variableName: String := Lines.To_String(Parameter);     
-           variable: VariableStore.Variable;     
-           IntTemp: Integer;                                   
-                  
-         begin    
-           if(variableName'Length > 1024) then
-             Put_Line(Invalid_Message);
-             return;
-           else 
-             variable := VariableStore.From_String(variableName); 
-           end if;         
-           if(Lock_State = Locked) then
-             Put_Line(No_Unlocked);      
-             return; 
-           
-           pragma Assert(Lock_State = Unlocked);             
-                        
-           elsif(NumTokens = 1) then
-             Put_Line(Expect_Two_Tokens);
-             return;              
-          
-           elsif(VariableStore.Has_Variable(DB, variable) = false) then        
-             Put_Line(No_Variable);
-             return;        
-           
-           elsif(Stack.Size(OperandStack) = 512) then
-             Put_Line(Too_Many_Operand);       
-             return;          
-            
-           else 
-             IntTemp := VariableStore.Get(DB, variable);
-             Stack.Push(OperandStack, IntTemp);              
-                  
-           end if;          
-         end;
-         
-       -- List Command Part      
-       elsif (Lines.Equal(Command, Command_List)) then         
-          if(Lock_State = Locked) then
-             Put_Line(No_Unlocked);      
-             return;      
-          
-          elsif(NumTokens = 2) then
-             Put_Line(Expect_One_Token);
-             return;         
-               
-          else      
-          VariableStore.Print(DB);
-  
-          end if;     
-       else
-       Put_Line(Invalid_Message);
-       return;          
+        end;                
        
        end if;  
        end;       
