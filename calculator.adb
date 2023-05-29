@@ -25,7 +25,6 @@ package body Calculator with SPARK_Mode is
    procedure Lock(C : in out Calculator; P : in PIN.PIN) is
    begin
       C.MasterPin := P;
-      pragma Assert(C.MasterPin = P);
       C.Lock_State := True;
    end Lock;
 
@@ -183,7 +182,7 @@ package body Calculator with SPARK_Mode is
    Stack.Pop(C.OperandStack, I2);          
 
    if(I2 = 0) then Put_Line(Divide_By_Zero); return; end if;
-   if (I1 = 0) then Stack.Push(C.OperandStack, 0); end if;
+   if (I1 = 0) then Stack.Push(C.OperandStack, 0);return; end if;
    if (I1 = Integer'First and I2 = -1) then
       Put_Line(Overflow_Occur);
       Stack.Push(C.OperandStack, I2);
@@ -230,7 +229,7 @@ package body Calculator with SPARK_Mode is
       Result := -Result;   
    end if;          
    Stack.Push(C.OperandStack, Result);
-
+   return;
    end Divide;
 
 
