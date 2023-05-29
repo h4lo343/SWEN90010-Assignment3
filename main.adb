@@ -1,3 +1,65 @@
+--  Zixuan Liu: 991414
+--  Security Property 1
+--  Annotation: 
+--  "Pre => (C.Lock_State = False)" at all procedures except for unlock
+--  It checks if the calculator is unlocked before for all operations 
+--  except for unlock.
+--  As a precondition, it must be met for these procedures to be carried out, 
+--  and it has been proven by gnatprover that this holds in current 
+--  implementation. 
+-- 
+--  Security Property 2
+--  Annotation: 
+--  "Pre => C.Lock_State = True" at procedure 'Unlock'.
+--  It checks if the calculator is locked before unlock operation.
+--  As a precondition, it must be met for unlock operation to be carried out, 
+--  and it has been proven by gnatprover that this holds in current 
+-- implementation.
+--  
+--  Security Property 3
+--  Annotation: 
+--  "Post => C.MasterPin = P" at procedure lock
+--  It checks if the new master pin is equal to the new pin supplied after lock 
+--  operation.
+--  As a postcondition, it must hold after the lock operation, and it has been 
+--  proven by gnatprover that this holds in current implementation.
+--  
+--  Security Property 4
+--  Annotation: 
+--  "Post => (StackSize(C) <= StackSize(C'Old)" at Add/Minus/Multiply/Divide
+--  It checks if the stack size is equal to or smaller than before after the 
+--  arithmetic operations.
+--  As a postcondition, it must hold after the lock operation, and it has been 
+--  proven by gnatprover that this holds in current implementation.
+--  
+--  Security Property 5
+--  Annotation: 
+--  "Post => (StackSize(C) = StackSize(C'Old) - 1)" at pop, store and 
+--  "Post => (StackSize(C) = StackSize(C'Old) + 1)" at push, load
+--  It checks if the stack size is updated exactly as intended for push, pop, 
+--  store and load operations.
+--  As a postcondition, it must hold after the lock operation, and it has been 
+--  proven by gnatprover that this holds in current implementation.
+--  
+--  Security Property 6
+--  Annotation:
+--  "Post => ((if C.Lock_State = False then PIN."="(C.MasterPin, P)) 
+--        and PIN."="(C.MasterPin, C'Old.MasterPin))"
+--  It checks if the master pin is unchanged and equal to the pin provided after 
+--  unlock operation.
+--  As a postcondition, it must hold after the lock operation, and it has been 
+--  proven by gnatprover that this holds in current implementation.
+--  
+--  Security Property 7
+--  Annotation:
+--  "Post => ((C.Lock_State = True) 
+--        and (PIN."="(C.MasterPin, P)))"
+--  It checks if the Calculator is locked and its master pin is equal to the pin 
+--  provided after Init operation.
+--  As a postcondition, it must hold after the lock operation, and it has been 
+--  proven by gnatprover that this holds in current implementation.
+
+
 pragma SPARK_Mode (On);
 with SimpleStack;
 with StringToInteger;
