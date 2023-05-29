@@ -19,10 +19,14 @@ package Calculator with SPARK_Mode  is
         Lock_State : Boolean;
     end record;
 
-    procedure Init(C: out Calculator; P: in PIN.PIN);
+    procedure Init(C: out Calculator; P: in PIN.PIN) with 
+    Post => ((C.Lock_State = True) 
+    	and (PIN."="(C.MasterPin, P)));
 
     procedure Unlock(C: in out Calculator; P: in PIN.PIN) with 
-    Pre => C.Lock_State = True;
+    Pre => C.Lock_State = True,
+    Post => ((if C.Lock_State = False then PIN."="(C.MasterPin, P)) 
+    	and PIN."="(C.MasterPin, C'Old.MasterPin));
 
     procedure Lock(C: in out Calculator; P: in PIN.PIN) with
     Pre => (C.Lock_State = False),
