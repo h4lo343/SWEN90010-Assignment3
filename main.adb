@@ -63,9 +63,6 @@ begin
       
    end if;
    
---     Stack.Init(OperandStack);
---     VariableStore.Init(DB);
-   
    loop
         if (C.Lock_State) then Put("locked>");
         else put("unlocked>");
@@ -166,9 +163,7 @@ begin
                        
          else 
          Calculator.Push(C, StringToInteger.From_String(Lines.To_String(Parameter)));
---         Stack.Push(OperandStack, StringToInteger.From_String(Lines.To_String(Parameter)));
-         end if;                
---       end if;  
+         end if;  
 
         -- Store Command Part    
        elsif (Lines.Equal(Command, Command_Store)) then     
@@ -254,9 +249,7 @@ begin
              Put_Line(No_Enough_Operand);
        
        else 
-         Calculator.Pop(C);
---       Stack.Pop(OperandStack, temp);   
---       Put_Line("pop integer: " & temp'Image);                 
+         Calculator.Pop(C);              
        end if;        
        end;
 
@@ -306,18 +299,96 @@ begin
              return;         
                
           else      
---          VariableStore.Print(C.DB);
           Calculator.List(C);
   
           end if;     
+
+        -- Add Command Part
+       elsif (Lines.Equal(Command, Command_Add)) then
+         begin      
+           if(C.Lock_State) then
+             Put_Line(No_Unlocked);      
+               return;
+         
+           elsif(NumTokens = 2) then
+             Put_Line(Expect_One_Token);
+             return; 
+       
+           elsif(Calculator.StackSize(C) < 2) then     
+             Put_Line(No_Enough_Operand);
+      
+           else
+             Calculator.Add(C);
+           end if;         
+         end;
+
+       -- Minus Command Part        
+       elsif (Lines.Equal(Command, Command_Minus)) then
+                      
+         begin      
+           if(C.Lock_State) then
+             Put_Line(No_Unlocked);      
+             return;        
+                    
+           elsif(NumTokens = 2) then
+             Put_Line(Expect_One_Token);
+             return; 
+       
+           elsif(Calculator.StackSize(C) < 2) then     
+             Put_Line(No_Enough_Operand);
+      
+         
+         else
+             Calculator.Minus(C);       
+           end if;         
+         end;
+
+       -- Multiple Command Part        
+       elsif (Lines.Equal(Command, Command_Multiple)) then          
+         begin       
+           if(C.Lock_State) then
+             Put_Line(No_Unlocked);      
+             return;                  
+                        
+           elsif(NumTokens = 2) then
+             Put_Line(Expect_One_Token);
+             return; 
+       
+           elsif(Calculator.StackSize(C) < 2) then     
+             Put_Line(No_Enough_Operand);
+      
+     
+           else
+             Calculator.Multiply(C);   
+                   
+           end if;            
+          end; 
+
+      -- Divide Command Part        
+       elsif(Lines.Equal(Command, Command_Divide)) then        
+         begin       
+           if(C.Lock_State) then
+             Put_Line(No_Unlocked);      
+             return;                    
+                        
+           elsif(NumTokens = 2) then
+             Put_Line(Expect_One_Token);
+             return; 
+       
+           elsif(Calculator.StackSize(C) < 2) then     
+             Put_Line(No_Enough_Operand);
+                  
+           else
+             Calculator.Divide(C);          
+                     
+           end if;             
+         end; 
+
+
        else
        Put_Line(Invalid_Message);
        return;          
-       
        end if; 
-
-
-
 
        end;       
     end;     

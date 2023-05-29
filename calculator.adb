@@ -4,6 +4,8 @@ with Ada.Integer_Text_IO; use Ada.Integer_Text_IO;
 
 package body Calculator is
 
+   Divide_By_Zero: String := "Can not divide by 0, Calculator Will Exit Now";
+   Overflow_Occur: String := "Overflow occured in the operation, Calculator Will Exit Now";
 
    procedure Init(C : out Calculator; P : in PIN.PIN) is
    begin
@@ -62,6 +64,160 @@ package body Calculator is
    begin
       VariableStore.Print(C.DB);
    end List;
+
+   procedure Add(C: in out Calculator) is
+   I1: Integer;
+   I2: Integer;
+   begin
+      Stack.Pop(C.OperandStack, I1);
+      Stack.Pop(C.OperandStack, I2);
+      if(if I2 < 0 then I1 >= Integer'First - I2
+               else I1 <= Integer'Last - I2
+             ) then 
+             Stack.Push(C.OperandStack, I1 + I2);
+      else 
+         Put_Line(Overflow_Occur);
+         Stack.Push(C.OperandStack, I2);
+         Stack.Push(C.OperandStack, I1);
+      end if;
+   end Add;
+
+   procedure Minus(C: in out Calculator) is
+   I1: Integer;
+   I2: Integer;
+   begin
+      Stack.Pop(C.OperandStack, I1);
+      Stack.Pop(C.OperandStack, I2);
+      if(if I2 < 0 then I1 <= Integer'Last + I2
+                  else I1 >= Integer'First + I2
+             ) then 
+             Stack.Push(C.OperandStack, I1 - I2);
+      else 
+         Put_Line(Overflow_Occur);
+         Stack.Push(C.OperandStack, I2);
+         Stack.Push(C.OperandStack, I1);
+      end if;
+   end Minus;
+
+   procedure Multiply(C: in out Calculator) is
+   I1: Integer;
+   I2: Integer;
+   result : Integer := 0;  
+   count : Integer := 0; 
+   begin
+      Stack.Pop(C.OperandStack, I1);
+      Stack.Pop(C.OperandStack, I2);
+      
+      if(I2 > 0 and I1 > 0) then 
+              while count < I1 loop
+              if(result > Integer'Last - I2) then
+                Put_Line(Overflow_Occur); 
+                return;
+              else   
+                result := result + I2;
+                count := count + 1;
+              end if;               
+              end loop;   
+             
+
+       elsif(I1 > 0 and I2 < 0) then 
+        while count < I1 loop
+        if(result < Integer'First - I2) then
+          Put_Line(Overflow_Occur); 
+          return;
+        else   
+          result := result + I2;
+          count := count + 1;
+        end if;               
+        end loop;  
+
+       elsif(I1 < 0 and I2 > 0) then 
+        while count < I2 loop
+        if(result < Integer'First - I1) then
+          Put_Line(Overflow_Occur); 
+          return;
+        else   
+          result := result + I1;
+          count := count + 1;
+        end if;               
+        end loop;
+
+       elsif(I1 < 0 and I2 < 0) then 
+          if(I1 = Integer'First or I2 = Integer'First) then
+            Put_Line(Overflow_Occur); 
+            return;
+          else   
+          while count < (-I2) loop
+          if(result > Integer'Last + I1) then
+            Put_Line(Overflow_Occur); 
+            return;
+          else   
+            result := result - I1;
+            count := count + 1;
+          end if;               
+          end loop; 
+          end if;
+        
+       end if;    
+       Stack.Push(C.OperandStack, result);
+
+   end Multiply;
+
+   procedure Divide(C: in out Calculator) is
+   I1: Integer;
+   I2: Integer;
+   Result : Integer := 0;
+   Bound : Integer;
+   begin
+   Stack.Pop(C.OperandStack, I1);     
+   Stack.Pop(C.OperandStack, I2);          
+
+   if(I2 = 0) then Put_Line(Divide_By_Zero); return; end if;
+   if (I1 = 0) then Stack.Push(C.OperandStack, 0); end if;
+   if (I1 = Integer'First and I2 = -1) then
+      Put_Line(Overflow_Occur); 
+      return;
+   end if;
+
+   if (I1 > 0 and I2 > 0) then   
+      Bound := I1;
+      while I1 >= I2 and Result < Bound loop
+         I1 := I1 - I2;
+         Result := Result + 1;
+      end loop;        
+   end if;
+
+   if (I1 > 0 and I2 < 0) then   
+      Bound := I1;
+      while -I1 <= I2 and Result > -Bound loop
+         I1 := I1 + I2;
+         Result := Result - 1;
+      end loop;        
+   end if;
+
+   if (I1 < 0 and I2 > 0) then   
+      Bound := I1;
+      while I1 <= -I2 and Result > Bound loop
+         I1 := I1 + I2;
+         Result := Result - 1;
+      end loop;        
+   end if;
+
+   if (I1 < 0 and I2 < 0) then   
+      Bound := I1;
+      while I1 <= I2 and Result > Bound loop
+         I1 := I1 - I2;
+         Result := Result - 1;
+      end loop;  
+      if(Result = Integer'First) then
+         Put_Line(Overflow_Occur); 
+         return;   
+      end if;  
+      Result := -Result;   
+   end if;          
+   Stack.Push(C.OperandStack, Result);
+
+   end Divide;
 
 
 end calculator;

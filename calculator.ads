@@ -31,6 +31,14 @@ package Calculator with SPARK_Mode  is
 
     procedure List(C: in Calculator);
 
+    procedure Add(C: in out Calculator);
+
+    procedure Minus(C: in out Calculator);
+
+    procedure Multiply(C: in out Calculator);
+
+    procedure Divide(C: in out Calculator);
+
     function StackSize(C: in Calculator) return Integer;
 
     private
