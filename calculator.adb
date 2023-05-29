@@ -1,3 +1,6 @@
+with VariableStore;
+with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Integer_Text_IO; use Ada.Integer_Text_IO;
 
 package body Calculator is
 
@@ -23,4 +26,42 @@ package body Calculator is
       C.MasterPin := P;
       C.Lock_State := True;
    end Lock;
+
+   procedure Push(C : in out Calculator; N: in Integer) is
+   begin
+      Stack.Push(C.OperandStack, N);
+   end Push;
+
+   procedure Store(C : in out Calculator; V: VariableStore.Variable) is
+   I: Integer;
+   begin
+      Stack.Pop(C.OperandStack, I); 
+      VariableStore.Put(C.DB, V, I);
+   end Store;
+
+   procedure Remove(C : in out Calculator; V: VariableStore.Variable) is
+   begin
+      VariableStore.Remove(C.DB, V);
+   end Remove;
+
+   procedure Pop(C : in out Calculator) is
+   I: Integer;
+   begin
+      Stack.Pop(C.OperandStack, I);
+      Put_Line("Pop integer: " & I'Image);
+   end Pop;
+
+   procedure Load(C : in out Calculator; V: VariableStore.Variable) is
+   I: Integer;
+   begin
+      I := VariableStore.Get(C.DB, V);
+      Stack.Push(C.OperandStack, I); 
+   end Load;
+
+   procedure List(C : in Calculator) is
+   begin
+      VariableStore.Print(C.DB);
+   end List;
+
+
 end calculator;

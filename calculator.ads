@@ -19,4 +19,23 @@ package Calculator with SPARK_Mode  is
 
     procedure Lock(C: in out Calculator; P: in PIN.PIN);
 
+    procedure Push(C: in out Calculator; N: in Integer);
+
+    procedure Store(C: in out Calculator; V: VariableStore.Variable);
+
+    procedure Remove(C: in out Calculator; V: VariableStore.Variable);
+
+    procedure Pop(C: in out Calculator);
+
+    procedure Load(C: in out Calculator; V: VariableStore.Variable);
+
+    procedure List(C: in Calculator);
+
+    function StackSize(C: in Calculator) return Integer;
+
+    private
+
+       function StackSize(C: in Calculator) return Integer is 
+       (Stack.Size(C.OperandStack));
+
 end calculator;

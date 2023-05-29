@@ -147,9 +147,178 @@ begin
          Parameter_String(I) >= '0' and Parameter_String(I) <= '9'  )) then                 
              Calculator.Lock(C, PIN.From_String(Parameter_String));
          end if;   
-        end;                
+        end;
+
+        -- Push Command Part        
+        elsif (Lines.Equal(Command, Command_Push)) then
+                 
+         if(C.Lock_State) then
+           Put_Line(No_Unlocked);      
+           return;                   
+                     
+         elsif(NumTokens = 1) then
+           Put_Line(Expect_Two_Tokens);
+           return;   
+         
+         elsif(Calculator.StackSize(C) = 512) then
+           Put_Line(Too_Many_Operand);       
+           return;       
+                       
+         else 
+         Calculator.Push(C, StringToInteger.From_String(Lines.To_String(Parameter)));
+--         Stack.Push(OperandStack, StringToInteger.From_String(Lines.To_String(Parameter)));
+         end if;                
+--       end if;  
+
+        -- Store Command Part    
+       elsif (Lines.Equal(Command, Command_Store)) then     
+         declare     
+           variableName: String := Lines.To_String(Parameter);     
+           variable: VariableStore.Variable;
+         begin         
+           if(variableName'Length > 1024) then
+             Put_Line(Invalid_Message);           
+             return; 
+           else 
+             variable := VariableStore.From_String(variableName);    
+           end if;       
+           if(C.Lock_State) then
+           Put_Line(No_Unlocked);      
+           return; 
+                      
+                        
+           elsif(NumTokens = 1) then
+             Put_Line(Expect_Two_Tokens);
+             return;     
+            
+           elsif(Calculator.StackSize(C) < 1) then
+             Put_Line(No_Enough_Operand);
+               
+           else 
+             if(VariableStore.Has_Variable(C.DB, variable)) then 
+               VariableStore.Remove(C.DB, variable);
+                                 
+             end if;    
+             if(VariableStore.Length(C.DB) >= 1000 ) then
+               Put_Line(DB_FULL);
+               return;
+             else
+             Calculator.Store(C, variable);
+             end if;      
+           end if;    
+         end;
+
+        -- Remove Command Part        
+       elsif (Lines.Equal(Command, Command_Remove)) then        
+         declare 
+           variableName: String := Lines.To_String(Parameter);     
+           variable: VariableStore.Variable;       
+         
+         begin 
+           if(variableName'Length > 1024) then
+             Put_Line(Invalid_Message);
+             return;
+           else 
+             variable := VariableStore.From_String(variableName); 
+           end if;  
+           if(C.Lock_State) then
+             Put_Line(No_Unlocked);      
+             return;          
+                        
+           elsif(NumTokens = 1) then
+             Put_Line(Expect_Two_Tokens);
+             return;              
+          
+           elsif(VariableStore.Has_Variable(C.DB, variable) = False) then        
+             Put_Line(No_Variable);
+             return;       
+             
+           else       
+              Calculator.Remove(C, variable);
+           end if;    
+               
+         end; 
+
+       -- Pop Command Part   
+       elsif (Lines.Equal(Command, Command_Pop)) then       
+       begin         
+       if(C.Lock_State) then
+           Put_Line(No_Unlocked);      
+             return;                
+                        
+       elsif(NumTokens = 2) then
+             Put_Line(Expect_One_Token);
+             return;
        
-       end if;  
+       elsif(Calculator.StackSize(C) < 1) then     
+             Put_Line(No_Enough_Operand);
+       
+       else 
+         Calculator.Pop(C);
+--       Stack.Pop(OperandStack, temp);   
+--       Put_Line("pop integer: " & temp'Image);                 
+       end if;        
+       end;
+
+       -- Load Command Part     
+       elsif (Lines.Equal(Command, Command_Load)) then 
+         declare  
+           variableName: String := Lines.To_String(Parameter);     
+           variable: VariableStore.Variable;                                 
+                  
+         begin    
+           if(variableName'Length > 1024) then
+             Put_Line(Invalid_Message);
+             return;
+           else 
+             variable := VariableStore.From_String(variableName); 
+           end if;         
+           if(C.Lock_State) then
+             Put_Line(No_Unlocked);      
+             return;           
+                        
+           elsif(NumTokens = 1) then
+             Put_Line(Expect_Two_Tokens);
+             return;              
+          
+           elsif(VariableStore.Has_Variable(C.DB, variable) = False) then        
+             Put_Line(No_Variable);
+             return;        
+           
+           elsif(Calculator.StackSize(C) = 512) then
+             Put_Line(Too_Many_Operand);       
+             return;          
+            
+           else 
+             Calculator.Load(C, variable);              
+                  
+           end if;          
+         end;
+
+       -- List Command Part      
+       elsif (Lines.Equal(Command, Command_List)) then         
+          if(C.Lock_State) then
+             Put_Line(No_Unlocked);      
+             return;      
+          
+          elsif(NumTokens = 2) then
+             Put_Line(Expect_One_Token);
+             return;         
+               
+          else      
+--          VariableStore.Print(C.DB);
+          Calculator.List(C);
+  
+          end if;     
+       else
+       Put_Line(Invalid_Message);
+       return;          
+       
+       end if; 
+
+
+
+
        end;       
     end;     
 
