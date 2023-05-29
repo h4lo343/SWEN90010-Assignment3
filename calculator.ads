@@ -33,7 +33,8 @@ package Calculator with SPARK_Mode  is
     	and C.Lock_State = False 
     	and N >= Integer'First 
     	and N <= Integer'Last),
-    Post => (StackSize(C) = StackSize(C'Old) + 1);
+    Post => ((StackSize(C) = StackSize(C'Old) + 1) 
+    	and Stack.Storage(C.OperandStack, StackSize(C)) = N);
 
     procedure Store(C: in out Calculator; V: VariableStore.Variable) with
     Pre => (VariableStore.Length(C.DB) < VariableStore.Max_Entries 
