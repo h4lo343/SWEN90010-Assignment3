@@ -5,6 +5,9 @@ with SimpleStack;
 package Calculator with SPARK_Mode  is
 
 	package Stack is new SimpleStack(512, Integer, 0);
+	Incorrect_Pin: String := "The Pin Entered Is Incorrect";
+	Divide_By_Zero: String := "Can not divide by 0, Calculator Will Exit Now";
+	Overflow_Occur: String := "Overflow occured in the operation";
 
     type Calculator is record
         DB : Variablestore.Database;

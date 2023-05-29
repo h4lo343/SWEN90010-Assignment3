@@ -2,10 +2,7 @@ with VariableStore;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Integer_Text_IO; use Ada.Integer_Text_IO;
 
-package body Calculator is
-
-   Divide_By_Zero: String := "Can not divide by 0, Calculator Will Exit Now";
-   Overflow_Occur: String := "Overflow occured in the operation, Calculator Will Exit Now";
+package body Calculator with SPARK_Mode is
 
    procedure Init(C : out Calculator; P : in PIN.PIN) is
    begin
@@ -20,6 +17,8 @@ package body Calculator is
    begin
       if PIN."="(C.MasterPin, P) then
          C.Lock_State := False;
+      else
+         Put_Line(Incorrect_Pin);
       end if;
    end Unlock;
 
@@ -112,6 +111,8 @@ package body Calculator is
               while count < I1 loop
               if(result > Integer'Last - I2) then
                 Put_Line(Overflow_Occur); 
+                  Stack.Push(C.OperandStack, I2);
+                  Stack.Push(C.OperandStack, I1);
                 return;
               else   
                 result := result + I2;
@@ -124,6 +125,8 @@ package body Calculator is
         while count < I1 loop
         if(result < Integer'First - I2) then
           Put_Line(Overflow_Occur); 
+            Stack.Push(C.OperandStack, I2);
+            Stack.Push(C.OperandStack, I1);
           return;
         else   
           result := result + I2;
@@ -135,6 +138,8 @@ package body Calculator is
         while count < I2 loop
         if(result < Integer'First - I1) then
           Put_Line(Overflow_Occur); 
+          Stack.Push(C.OperandStack, I2);
+          Stack.Push(C.OperandStack, I1);
           return;
         else   
           result := result + I1;
@@ -145,11 +150,15 @@ package body Calculator is
        elsif(I1 < 0 and I2 < 0) then 
           if(I1 = Integer'First or I2 = Integer'First) then
             Put_Line(Overflow_Occur); 
+            Stack.Push(C.OperandStack, I2);
+            Stack.Push(C.OperandStack, I1);
             return;
           else   
           while count < (-I2) loop
           if(result > Integer'Last + I1) then
             Put_Line(Overflow_Occur); 
+            Stack.Push(C.OperandStack, I2);
+            Stack.Push(C.OperandStack, I1);
             return;
           else   
             result := result - I1;
@@ -175,7 +184,9 @@ package body Calculator is
    if(I2 = 0) then Put_Line(Divide_By_Zero); return; end if;
    if (I1 = 0) then Stack.Push(C.OperandStack, 0); end if;
    if (I1 = Integer'First and I2 = -1) then
-      Put_Line(Overflow_Occur); 
+      Put_Line(Overflow_Occur);
+      Stack.Push(C.OperandStack, I2);
+      Stack.Push(C.OperandStack, I1); 
       return;
    end if;
 
@@ -211,6 +222,8 @@ package body Calculator is
       end loop;  
       if(Result = Integer'First) then
          Put_Line(Overflow_Occur); 
+         Stack.Push(C.OperandStack, I2);
+         Stack.Push(C.OperandStack, I1);
          return;   
       end if;  
       Result := -Result;   

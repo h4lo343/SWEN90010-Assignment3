@@ -21,9 +21,7 @@ procedure Main is
    
    Invalid_Message : String := "Invalid Input, Calculator Will Exit Now";
    Too_Many_Tokens: String := "Too Many Tokens";
-   No_Tokens: String := "There Is No Token";
-   Incorrect_Pin: String := "The Pin Entered Is Incorrect";
-   Expect_Two_Tokens: String := "Expect 2 Tokens But Only Get 1";
+   No_Tokens: String := "There Is No Token";   Expect_Two_Tokens: String := "Expect 2 Tokens But Only Get 1";
    Expect_One_Token: String := "Only Expect 1 Command For The Command";
    Already_Unlocked: String := "Calculator Already Been Unlocked";
    Already_Locked : String := "Calculator Already Been Locked";
@@ -31,8 +29,6 @@ procedure Main is
    Too_Many_Operand : String := "Too Many Operands In Stack, Pop Some First";
    No_Enough_Operand : String := "No Enough Operands For the Operation";
    No_Variable : String := "There Is No Such Variable In Database";
-   Divide_By_Zero: String := "Can not divide by 0, Calculator Will Exit Now";
-   Overflow_Occur: String := "Overflow occured in the operation, Calculator Will Exit Now";
    DB_FULL: String := "DB is Full";
    
 
