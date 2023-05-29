@@ -25,6 +25,7 @@ package body Calculator with SPARK_Mode is
    procedure Lock(C : in out Calculator; P : in PIN.PIN) is
    begin
       C.MasterPin := P;
+      pragma Assert(C.MasterPin = P);
       C.Lock_State := True;
    end Lock;
 

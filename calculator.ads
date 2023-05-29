@@ -1,6 +1,9 @@
 with PIN;
-with Variablestore;
+use PIN;
+with VariableStore;
 with SimpleStack;
+with Ada.Containers;
+use Ada.Containers;
 
 package Calculator with SPARK_Mode  is
 
@@ -10,7 +13,7 @@ package Calculator with SPARK_Mode  is
 	Overflow_Occur: String := "Overflow occured in the operation";
 
     type Calculator is record
-        DB : Variablestore.Database;
+        DB : VariableStore.Database;
         MasterPin : PIN.PIN;
         OperandStack : Stack.SimpleStack;
         Lock_State : Boolean;
@@ -18,29 +21,43 @@ package Calculator with SPARK_Mode  is
 
     procedure Init(C: out Calculator; P: in PIN.PIN);
 
-    procedure Unlock(C: in out Calculator; P: in PIN.PIN);
+    procedure Unlock(C: in out Calculator; P: in PIN.PIN) with 
+    Pre => C.Lock_State = True;
 
-    procedure Lock(C: in out Calculator; P: in PIN.PIN);
+    procedure Lock(C: in out Calculator; P: in PIN.PIN) with
+    Pre => (C.Lock_State = False),
+    Post => C.MasterPin = P;
 
-    procedure Push(C: in out Calculator; N: in Integer);
+    procedure Push(C: in out Calculator; N: in Integer) with
+    Pre => (StackSize(C) < 512 and C.Lock_State = False);
 
-    procedure Store(C: in out Calculator; V: VariableStore.Variable);
+    procedure Store(C: in out Calculator; V: VariableStore.Variable) with
+    Pre => (VariableStore.Length(C.DB) < VariableStore.Max_Entries and StackSize(c) > 0 and C.Lock_State = False);
 
-    procedure Remove(C: in out Calculator; V: VariableStore.Variable);
+    procedure Remove(C: in out Calculator; V: VariableStore.Variable) with
+    Pre => (VariableStore.Has_Variable(C.DB, V) and C.Lock_State = False);
 
-    procedure Pop(C: in out Calculator);
+    procedure Pop(C: in out Calculator) with
+    Pre => (StackSize(C) > 0 and C.Lock_State = False);
 
-    procedure Load(C: in out Calculator; V: VariableStore.Variable);
+    procedure Load(C: in out Calculator; V: VariableStore.Variable) with
+    Pre => (VariableStore.Has_Variable(C.DB, V) and StackSize(C) < 512 and C.Lock_State = False);
 
-    procedure List(C: in Calculator);
+    procedure List(C: in Calculator) with
+    Pre => (C.Lock_State = False),
+    Global => null;
 
-    procedure Add(C: in out Calculator);
+    procedure Add(C: in out Calculator) with
+    Pre => (StackSize(C) >= 2 and C.Lock_State = False);
 
-    procedure Minus(C: in out Calculator);
+    procedure Minus(C: in out Calculator) with
+    Pre => (StackSize(C) >= 2 and C.Lock_State = False);
 
-    procedure Multiply(C: in out Calculator);
+    procedure Multiply(C: in out Calculator) with
+    Pre => (StackSize(C) >= 2 and C.Lock_State = False);
 
-    procedure Divide(C: in out Calculator);
+    procedure Divide(C: in out Calculator) with
+    Pre => (StackSize(C) >= 2 and C.Lock_State = False);
 
     function StackSize(C: in Calculator) return Integer;
 
