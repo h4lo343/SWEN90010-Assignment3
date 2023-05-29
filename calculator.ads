@@ -32,7 +32,8 @@ package Calculator with SPARK_Mode  is
     Pre => (StackSize(C) < 512 
     	and C.Lock_State = False 
     	and N >= Integer'First 
-    	and N <= Integer'Last);
+    	and N <= Integer'Last),
+    Post => (StackSize(C) = StackSize(C'Old) + 1);
 
     procedure Store(C: in out Calculator; V: VariableStore.Variable) with
     Pre => (VariableStore.Length(C.DB) < VariableStore.Max_Entries 
@@ -43,12 +44,14 @@ package Calculator with SPARK_Mode  is
     Pre => (VariableStore.Has_Variable(C.DB, V) and C.Lock_State = False);
 
     procedure Pop(C: in out Calculator) with
-    Pre => (StackSize(C) > 0 and C.Lock_State = False);
+    Pre => (StackSize(C) > 0 and C.Lock_State = False),
+    Post => (StackSize(C) = StackSize(C'Old) - 1);
 
     procedure Load(C: in out Calculator; V: VariableStore.Variable) with
     Pre => (VariableStore.Has_Variable(C.DB, V) 
     	and StackSize(C) < 512 
-    	and C.Lock_State = False);
+    	and C.Lock_State = False),
+    Post => (StackSize(C) = StackSize(C'Old) + 1);
 
     procedure List(C: in Calculator) with
     Pre => (C.Lock_State = False),
