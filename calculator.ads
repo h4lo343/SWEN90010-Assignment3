@@ -5,6 +5,7 @@ with SimpleStack;
 with Ada.Containers;
 use Ada.Containers;
 
+
 package Calculator with SPARK_Mode  is
 
     package Stack is new SimpleStack(512, Integer, 0);

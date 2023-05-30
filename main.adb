@@ -69,12 +69,6 @@
 --  As a postcondition, it must hold after the lock operation, and it has been 
 --  proven by gnatprover that this holds in current implementation.
 
- 
-
-
-
-
-
 pragma SPARK_Mode (On);
 with SimpleStack;
 with StringToInteger;
