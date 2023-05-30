@@ -47,7 +47,7 @@ package Calculator with SPARK_Mode  is
     Post => (StackSize(C) = StackSize(C'Old) - 1);
 
     procedure Remove(C: in out Calculator; V: VariableStore.Variable) with
-    Pre => (VariableStore.Has_Variable(C.DB, V) and C.Lock_State = False);
+    Pre => (VariableStore.Has_Variable(C.DB, V) and (C.Lock_State = False));
 
     procedure Pop(C: in out Calculator) with
     Pre => (StackSize(C) > 0 and C.Lock_State = False),
@@ -65,19 +65,19 @@ package Calculator with SPARK_Mode  is
 
     procedure Add(C: in out Calculator) with
     Pre => (StackSize(C) >= 2 and C.Lock_State = False),
-    Post => (StackSize(C) <= StackSize(C'Old));
+    Post => (StackSize(C) = StackSize(C'Old) - 1 or StackSize(C) = StackSize(C'Old));
 
     procedure Minus(C: in out Calculator) with
     Pre => (StackSize(C) >= 2 and C.Lock_State = False),
-    Post => (StackSize(C) <= StackSize(C'Old));
+    Post => (StackSize(C) = StackSize(C'Old) - 1 or StackSize(C) = StackSize(C'Old) );
 
     procedure Multiply(C: in out Calculator) with
     Pre => (StackSize(C) >= 2 and C.Lock_State = False),
-    Post => (StackSize(C) <= StackSize(C'Old));
+    Post => (StackSize(C) = StackSize(C'Old) - 1 or StackSize(C) = StackSize(C'Old) );
 
     procedure Divide(C: in out Calculator) with
     Pre => (StackSize(C) >= 2 and C.Lock_State = False),
-    Post => (StackSize(C) <= StackSize(C'Old));
+    Post => (StackSize(C) = StackSize(C'Old) - 1 or StackSize(C) = StackSize(C'Old) );
 
     function StackSize(C: in Calculator) return Integer;
 

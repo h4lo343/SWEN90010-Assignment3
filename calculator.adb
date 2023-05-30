@@ -181,7 +181,11 @@ package body Calculator with SPARK_Mode is
    Stack.Pop(C.OperandStack, I1);     
    Stack.Pop(C.OperandStack, I2);          
 
-   if(I2 = 0) then Put_Line(Divide_By_Zero); return; end if;
+   if(I2 = 0) then 
+     Put_Line(Divide_By_Zero); 
+     Stack.Push(C.OperandStack, I2);
+     Stack.Push(C.OperandStack, I1); 
+     return; end if;
    if (I1 = 0) then Stack.Push(C.OperandStack, 0);return; end if;
    if (I1 = Integer'First and I2 = -1) then
       Put_Line(Overflow_Occur);

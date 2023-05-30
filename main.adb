@@ -1,4 +1,8 @@
+--  AUTHOR: 
 --  Zixuan Liu: 991414
+--  Xiangnan Zhou: 1243072
+
+--  TASK4 REPORT: 
 --  Security Property 1
 --  Annotation: 
 --  "Pre => (C.Lock_State = False)" at all procedures except for unlock
@@ -58,6 +62,23 @@
 --  provided after Init operation.
 --  As a postcondition, it must hold after the lock operation, and it has been 
 --  proven by gnatprover that this holds in current implementation.
+-- 
+--  Security Property 8
+--  Annotation: 
+--  "Post => (StackSize(C) = StackSize(C'Old) - 1 or StackSize(C) = StackSize(C'Old));"
+--  at procedures Add, Minus, Multiply and Divide in Calculator package. This post condition 
+--  checks whether the size of operand stack has been updated correctly after a calculation operation
+--  it should be either equal to its previous size which means, there are illegal incidents involved
+--  in the calculation like: overflow, divide by 0 so that the operation has been canceled and operands 
+--  have been pushed back into the operand stack or 1 less than previous size which means: operation
+--  has been done successfully, 2 operands has been poped and then, the result has been pushed in to stack
+--  so that the size of the new stack is 1 less than the older one.
+--  There could not be a 3rd possibility for the change of size of operand stack 
+--  after a calculation operation. 
+--  It has been proven by gnatprover that our calculation operation procedures meet this post condition
+
+
+
 
 
 pragma SPARK_Mode (On);
